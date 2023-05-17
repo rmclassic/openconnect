@@ -42,7 +42,7 @@ int script_setenv(struct openconnect_info *vpninfo,
 	struct oc_vpn_option *p;
 	char *str;
 
-	for (p = vpninfo->script_env; p; p = p->next)
+	for (p = vpninfo->script_env; p; p = p->next) {
 		if (!strcmp(opt, p->option)) {
 			if (append) {
 				if (val) {
@@ -58,6 +58,7 @@ int script_setenv(struct openconnect_info *vpninfo,
 			}
 			return 0;
 		}
+	}
 
 	p = malloc(sizeof(*p));
 	if (!p)
