@@ -44,7 +44,7 @@ int script_setenv(struct openconnect_info *vpninfo,
 
 	for (p = vpninfo->script_env; p; p = p->next) {
 		if (!strcmp(opt, p->option)) {
-			if (append) {
+			if (append && p->value) {
 				if (val) {
 					if (asprintf(&str, "%s %s", p->value, val) == -1)
 						return -ENOMEM;
