@@ -47,6 +47,7 @@ Makefile
 /android/sources/
 /android/arm-linux-androideabi/
 /android/i686-linux-android/
+/android/x86_64-linux-android/
 /android/mipsel-linux-android/
 /android/sysroot-*/
 
