@@ -320,7 +320,7 @@ $(OPENCONNECT_BUILD)/Makefile: $(GNUTLS_DEPS) $(LIBXML_DEPS) \
 	LDFLAGS="$(EXTRA_LDFLAGS) -rdynamic -pie" \
 	GNUTLS_LIBS="$(shell $(PKG_CONFIG) --static --libs gnutls)" \
 	LIBSTOKEN_LIBS="$(shell $(PKG_CONFIG) --static --libs stoken)" \
-	--enable-shared --with-vpnc-script=/etc/vpnc/vpnc-script \
+	--with-vpnc-script=/etc/vpnc/vpnc-script \
 	--with-java=$(OC_SYSROOT)/include --enable-jni-standalone \
 	--disable-symvers
 
