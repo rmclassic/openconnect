@@ -29,9 +29,8 @@ nettle_MIRROR_0=http://www.lysator.liu.se/~nisse/archive
 nettle_MIRROR_1=http://ftp.gnu.org/gnu/nettle
 nettle_MIRROR_2=http://gd.tuwien.ac.at/gnu/gnusrc/nettle
 
-gnutls_MIRROR_0=https://www.gnupg.org/ftp/gcrypt/gnutls/v3.6
-gnutls_MIRROR_1=http://ftp.heanet.ie/mirrors/ftp.gnupg.org/gcrypt/gnutls/v3.6
-gnutls_MIRROR_2=http://gd.tuwien.ac.at/pub/gnupg/gnutls/v3.6
+gnutls_MIRROR_0=https://www.gnupg.org/ftp/gcrypt/gnutls/v3.8
+gnutls_MIRROR_1=http://ftp.heanet.ie/mirrors/ftp.gnupg.org/gcrypt/gnutls/v3.8
 
 stoken_MIRROR_0=http://sourceforge.net/projects/stoken/files
 stoken_SUFFIX_0=/download
@@ -110,7 +109,7 @@ function download_and_check
 	local hash="$3"
 
 	rm -f "$tmpfile"
-	if curl --location --connect-timeout 30 --speed-limit 1024 \
+	if curl --location --connect-timeout 30 \
 			-o "$tmpfile" "$url"; then
 		if [ -n "$hash" ]; then
 			if ! check_hash "$tmpfile" "$hash"; then

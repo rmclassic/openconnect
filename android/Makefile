@@ -13,16 +13,13 @@
 # Last tested with https://dl.google.com/android/repository/android-ndk-r21b-linux-x86_64.zip
 
 
-NDK     := /opt/android-sdk-linux_x86/android-ndk-r21b
+NDK     := /home/ramin/android/sdk/ndk/25.0.8775105
 ARCH    := x86_64
 API_LEVEL := 23
 
-EXTRA_CFLAGS :=
-
 # You should be able to just 'make ARCH=x86' and it should DTRT.
 ifeq ($(ARCH),arm)
-TRIPLET := arm-linux-androideabi
-EXTRA_CFLAGS := -march=armv7-a -mthumb
+TRIPLET := armv7a-linux-androideabi
 endif
 ifeq ($(ARCH),arm64)
 TRIPLET := aarch64-linux-android
@@ -38,14 +35,10 @@ endif
 TOPDIR := $(shell pwd)
 DESTDIR := $(TOPDIR)/$(TRIPLET)/out
 
-EXTRA_CFLAGS += -D__ANDROID_API__=$(API_LEVEL) -O2
-
-TOOLCHAIN := $(TOPDIR)/$(TRIPLET)/toolchain
-TOOLCHAIN_BUILT := $(TOOLCHAIN)/.built
-TOOLCHAIN_OPTS := --platform=android-$(API_LEVEL) --arch=$(ARCH) \
-		  --install-dir=$(TOOLCHAIN)
+HOST_TAG= linux-$(shell uname -m)
+TOOLCHAIN := $(NDK)/toolchains/llvm/prebuilt/$(HOST_TAG)
+TOOLCHAIN_OPTS := -target=$(TRIPLET)
 PATH := $(TOOLCHAIN)/bin:$(PATH)
-
 OC_SYSROOT := $(TOOLCHAIN)/sysroot/usr
 PKG_CONFIG_LIBDIR := $(OC_SYSROOT)/lib/pkgconfig
 
@@ -59,7 +52,7 @@ FETCH=$(TOPDIR)/fetch.sh
 
 CONFIGURE_ARGS := --host=$(TRIPLET) --prefix=$(OC_SYSROOT) \
 		  --disable-shared --enable-static --with-pic \
-		  CC=$(TRIPLET)-clang CFLAGS="$(EXTRA_CFLAGS)"
+		  CC=$(TRIPLET)$(API_LEVEL)-clang CFLAGS="$(EXTRA_CFLAGS)"
 
 SOURCE_LIST = $(LIBXML2_SRC)/configure $(GMP_SRC)/configure \
 	$(NETTLE_SRC)/configure $(GNUTLS_SRC)/configure \
@@ -71,19 +64,6 @@ PKG_LIST := LIBXML2 GMP NETTLE GNUTLS STOKEN LZ4
 MIRROR_TEST_TARGETS := $(addprefix mirror-test-,$(PKG_LIST))
 
 all: openconnect run_pie
-
-#####################################################################
-#
-# Install a local cross toolchain + sysroot
-#
-# (The fallback logic is because NDK versions <= r8e can fail after trying to
-# use 32-bit binaries on a 64-bit NDK installation.)
-#
-$(TOOLCHAIN_BUILT):
-	$(NDK)/build/tools/make-standalone-toolchain.sh $(TOOLCHAIN_OPTS) || \
-		$(NDK)/build/tools/make-standalone-toolchain.sh \
-			$(TOOLCHAIN_OPTS) --system=linux-x86_64
-	touch $@
 
 #####################################################################
 #
@@ -104,7 +84,7 @@ $(LIBXML2_SRC)/configure: $(LIBXML2_TAR)
 	tar xfz $<  -C sources
 	touch $@
 
-$(LIBXML2_BUILD)/Makefile: $(TOOLCHAIN_BUILT) $(LIBXML2_SRC)/configure
+$(LIBXML2_BUILD)/Makefile: $(LIBXML2_SRC)/configure
 	mkdir -p $(LIBXML2_BUILD)
 	cd $(LIBXML2_BUILD) && ../../$(LIBXML2_SRC)/configure $(CONFIGURE_ARGS) \
 	    --without-c14n -without-catalog --without-debug --without-docbook \
@@ -153,7 +133,7 @@ $(GMP_SRC)/configure: $(GMP_TAR)
 	tar -xJf $< -C sources
 	touch $@
 
-$(GMP_BUILD)/Makefile: $(TOOLCHAIN_BUILT) $(GMP_SRC)/configure
+$(GMP_BUILD)/Makefile: $(GMP_SRC)/configure
 	mkdir -p $(GMP_BUILD)
 	cd $(GMP_BUILD) && ../../$(GMP_SRC)/configure $(CONFIGURE_ARGS)
 
@@ -188,7 +168,7 @@ $(NETTLE_SRC)/configure: $(NETTLE_TAR)
 	tar xfz $< -C sources
 	touch $@
 
-$(NETTLE_BUILD)/Makefile: $(TOOLCHAIN_BUILT) $(NETTLE_SRC)/configure $(GMP_DEPS)
+$(NETTLE_BUILD)/Makefile: $(NETTLE_SRC)/configure $(GMP_DEPS)
 	mkdir -p $(NETTLE_BUILD)
 	cd $(NETTLE_BUILD) && ../../$(NETTLE_SRC)/configure $(CONFIGURE_ARGS)
 
@@ -208,9 +188,9 @@ nettle: $(NETTLE_DEPS)
 # Build GnuTLS
 #
 # https://www.gnutls.org/download.html
-GNUTLS_VER := 3.6.16
+GNUTLS_VER := 3.8.1
 GNUTLS_TAR := gnutls-$(GNUTLS_VER).tar.xz
-GNUTLS_SHA := 1b79b381ac283d8b054368b335c408fedcb9b7144e0c07f531e3537d4328f3b3
+GNUTLS_SHA := ba8b9e15ae20aba88f44661978f5b5863494316fe7e722ede9d069fe6294829c
 GNUTLS_SRC := sources/gnutls-$(GNUTLS_VER)
 GNUTLS_BUILD := $(TRIPLET)/gnutls
 
@@ -230,7 +210,7 @@ $(GNUTLS_SRC)/configure: $(GNUTLS_TAR)
 #	touch $(GNUTLS_SRC)/ChangeLog
 #	cd $(GNUTLS_SRC) && autoreconf -fvi
 
-$(GNUTLS_BUILD)/Makefile: $(TOOLCHAIN_BUILT) $(GNUTLS_SRC)/configure $(NETTLE_DEPS)
+$(GNUTLS_BUILD)/Makefile: $(GNUTLS_SRC)/configure $(NETTLE_DEPS)
 	mkdir -p $(GNUTLS_BUILD)
 	cd $(GNUTLS_BUILD) && ../../$(GNUTLS_SRC)/configure $(CONFIGURE_ARGS) \
 		AUTOGEN=/bin/false \
@@ -272,7 +252,7 @@ $(STOKEN_SRC)/configure: $(STOKEN_TAR)
 	tar xfz $< -C sources
 	touch $@
 
-$(STOKEN_BUILD)/Makefile: $(TOOLCHAIN_BUILT) $(STOKEN_SRC)/configure $(NETTLE_DEPS)
+$(STOKEN_BUILD)/Makefile: $(STOKEN_SRC)/configure $(NETTLE_DEPS)
 	mkdir -p $(STOKEN_BUILD)
 	cd $(STOKEN_BUILD) && ../../$(STOKEN_SRC)/configure $(CONFIGURE_ARGS) \
 		--without-gtk
@@ -306,10 +286,10 @@ $(LZ4_DIR)/Makefile: $(LZ4_TAR)
 	tar xzf $< -C $(TRIPLET)
 	touch $@
 
-$(OC_SYSROOT)/lib/liblz4.a: $(TOOLCHAIN_BUILT) $(LZ4_DIR)/Makefile
+$(OC_SYSROOT)/lib/liblz4.a: $(LZ4_DIR)/Makefile
 	$(MAKE) -C $(LZ4_DIR)/lib \
-		CC="$(TRIPLET)-clang $(EXTRA_CFLAGS)" \
-		AR="$(TRIPLET)-ar" \
+		CC="$(TRIPLET)$(API_LEVEL)-clang $(EXTRA_CFLAGS)" \
+		AR="llvm-ar" \
 		LIBDIR=$(OC_SYSROOT)/lib \
 		INCLUDEDIR=$(OC_SYSROOT)/include \
 		install
@@ -329,12 +309,14 @@ OPENCONNECT_BUILD := $(TRIPLET)/openconnect
 $(OPENCONNECT_SRC)/configure:
 	cd $(OPENCONNECT_SRC) && ./autogen.sh
 
-$(OPENCONNECT_BUILD)/Makefile: $(TOOLCHAIN_BUILT) $(GNUTLS_DEPS) $(LIBXML_DEPS) \
+$(OPENCONNECT_BUILD)/Makefile: $(GNUTLS_DEPS) $(LIBXML_DEPS) \
 		$(STOKEN_DEPS) $(LZ4_DEPS) $(OPENCONNECT_SRC)/configure
 	mkdir -p $(OPENCONNECT_BUILD)
+	echo $(CONFIGURE_ARGS)
 	cd $(OPENCONNECT_BUILD) && ../../../configure \
 	--host=$(TRIPLET) --prefix=/ \
-	CFLAGS="$(EXTRA_CFLAGS) -fvisibility=default -fPIE" \
+	$(CONFIGURE_ARGS)
+	CFLAGS="$(EXTRA_CFLAGS) -fvisibility=default " \
 	LDFLAGS="$(EXTRA_LDFLAGS) -rdynamic -pie" \
 	GNUTLS_LIBS="$(shell $(PKG_CONFIG) --static --libs gnutls)" \
 	LIBSTOKEN_LIBS="$(shell $(PKG_CONFIG) --static --libs stoken)" \
@@ -351,9 +333,10 @@ openconnect: $(OPENCONNECT_BUILD)/Makefile
 #
 # Build run_pie helper program
 #
-$(DESTDIR)/sbin/run_pie: run_pie.c $(TOOLCHAIN_BUILT)
+$(DESTDIR)/sbin/run_pie: run_pie.c
+	echo $(TOPDIR)
 	mkdir -p $(DESTDIR)/sbin
-	$(TRIPLET)-clang $< -o $@ -ldl
+	$(TRIPLET)$(API_LEVEL)-clang $< -o $@ -ldl
 
 .PHONY: run_pie
 run_pie: $(DESTDIR)/sbin/run_pie
