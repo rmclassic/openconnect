@@ -16,6 +16,7 @@
 NDK     := /home/ramin/android/sdk/ndk/25.0.8775105
 ARCH    := x86_64
 API_LEVEL := 23
+STRIP := llvm-strip
 
 # You should be able to just 'make ARCH=x86' and it should DTRT.
 ifeq ($(ARCH),arm)
@@ -312,10 +313,10 @@ $(OPENCONNECT_SRC)/configure:
 $(OPENCONNECT_BUILD)/Makefile: $(GNUTLS_DEPS) $(LIBXML_DEPS) \
 		$(STOKEN_DEPS) $(LZ4_DEPS) $(OPENCONNECT_SRC)/configure
 	mkdir -p $(OPENCONNECT_BUILD)
-	echo $(CONFIGURE_ARGS)
 	cd $(OPENCONNECT_BUILD) && ../../../configure \
 	--host=$(TRIPLET) --prefix=/ \
-	$(CONFIGURE_ARGS)
+	STRIP=$(STRIP) \
+	$(CONFIGURE_ARGS)  \
 	CFLAGS="$(EXTRA_CFLAGS) -fvisibility=default " \
 	LDFLAGS="$(EXTRA_LDFLAGS) -rdynamic -pie" \
 	GNUTLS_LIBS="$(shell $(PKG_CONFIG) --static --libs gnutls)" \
