@@ -326,8 +326,8 @@ $(OPENCONNECT_BUILD)/Makefile: $(GNUTLS_DEPS) $(LIBXML_DEPS) \
 	--disable-symvers
 
 openconnect: $(OPENCONNECT_BUILD)/Makefile
-	make -C $(OPENCONNECT_BUILD) prefix=/
-	make -C $(OPENCONNECT_BUILD) install-strip DESTDIR=$(DESTDIR)
+	make -C $(OPENCONNECT_BUILD)
+	make -C $(OPENCONNECT_BUILD) install-strip prefix=/ DESTDIR=$(DESTDIR)
 
 
 #####################################################################
