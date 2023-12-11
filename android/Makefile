@@ -316,7 +316,6 @@ $(OPENCONNECT_BUILD)/Makefile: $(GNUTLS_DEPS) $(LIBXML_DEPS) \
 	cd $(OPENCONNECT_BUILD) && ../../../configure \
 	--host=$(TRIPLET) --prefix=/ \
 	STRIP=$(STRIP) \
-	$(CONFIGURE_ARGS)  \
 	CFLAGS="$(EXTRA_CFLAGS) -fvisibility=default " \
 	LDFLAGS="$(EXTRA_LDFLAGS) -rdynamic -pie" \
 	GNUTLS_LIBS="$(shell $(PKG_CONFIG) --static --libs gnutls)" \
