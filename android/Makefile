@@ -314,7 +314,7 @@ $(OPENCONNECT_BUILD)/Makefile: $(GNUTLS_DEPS) $(LIBXML_DEPS) \
 		$(STOKEN_DEPS) $(LZ4_DEPS) $(OPENCONNECT_SRC)/configure
 	mkdir -p $(OPENCONNECT_BUILD)
 	cd $(OPENCONNECT_BUILD) && ../../../configure \
-	--host=$(TRIPLET) --prefix=/ \
+	--host=$(TRIPLET) --prefix=$(OC_SYSROOT) \
 	STRIP=$(STRIP) \
 	CC=$(TRIPLET)$(API_LEVEL)-clang \
 	CFLAGS="$(EXTRA_CFLAGS) -fvisibility=default " \
